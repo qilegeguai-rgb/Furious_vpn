@@ -214,7 +214,7 @@ jobs:
           path: dist/
       - name: Create GitHub Release
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: >-
           gh release create
           '${{ github.ref_name }}'
@@ -225,7 +225,7 @@ jobs:
           --title 'Furious ${{ github.ref_name }}'
       - name: Upload artifact signatures to GitHub Release
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         # Upload to GitHub Release using the `gh` CLI.
         run: >-
           gh release upload
