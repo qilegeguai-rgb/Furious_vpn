@@ -199,7 +199,7 @@ jobs:
       Upload to GitHub Release
     needs:
       - deploy-binaries
-      - publish-to-pypi
+      # - publish-to-pypi
     runs-on: ubuntu-latest
 
     permissions:
