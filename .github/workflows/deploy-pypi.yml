@@ -17,7 +17,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           check-latest: true
 
       - name: Set up Python venv
@@ -25,6 +25,7 @@ jobs:
           python3 -m venv .venv
           source .venv/bin/activate
           python3 --version
+          python3 -m pip install --upgrade pip
 
       - name: Install libegl1
         run: |
@@ -83,6 +84,10 @@ jobs:
     strategy:
       matrix:
         os: [windows-2022, macos-13, macos-14]
+    env:
+      # Last PySide6 version that supports macOS 10.9 + Python 3.11
+      PYSIDE6_LEGACY_VERSION: "6.4.3"
+      PYSIDE6_TARGET_VERSION: "6.8.1"
 
     steps:
       - uses: actions/checkout@v4
@@ -90,7 +95,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           check-latest: true
 
       - name: Set up Python venv
@@ -105,6 +110,7 @@ jobs:
             exit 1
           fi
           python3 --version
+          python3 -m pip install --upgrade pip
 
       - name: Install macOS dependencies
         run: |
@@ -122,16 +128,9 @@ jobs:
         run: |
           python3 -m pip install setuptools wheel
 
-      - name: Install specific PySide6-Essentials on OS
+      - name: Install PySide6-Essentials
         run: |
-          if [ "$RUNNER_OS" == "macOS" ]; then
-            python3 -m pip install PySide6-Essentials==6.4.3
-          elif [ "$RUNNER_OS" == "Windows" ]; then
-            python3 -m pip install PySide6-Essentials==6.5.3
-          else
-            echo "$RUNNER_OS not supported"
-            exit 1
-          fi
+          python3 -m pip install PySide6-Essentials==$PYSIDE6_TARGET_VERSION
 
       - name: Install requirements.txt
         run: |
@@ -175,17 +174,6 @@ jobs:
       - name: Run deploy script
         run: python3 Deploy.py
 
-      - name: Upgrade PySide6-Essentials to 6.5.3 if on macOS
-        run: |
-          python3 -m pip uninstall -y PySide6-Essentials shiboken6
-          python3 -m pip install PySide6-Essentials==6.5.3
-        if: runner.os == 'macOS'
-
-      - name: Run deploy script again if on macOS
-        run: |
-          python3 Deploy.py
-        if: runner.os == 'macOS'
-
       - name: Store the distribution packages
         uses: actions/upload-artifact@v3
         with:
@@ -223,7 +211,7 @@ jobs:
           --prerelease
           --generate-notes
           --title 'Furious ${{ github.ref_name }}'
-      - name: Upload artifact signatures to GitHub Release
+      - name: Upload artifact to GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         # Upload to GitHub Release using the `gh` CLI.
